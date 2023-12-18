@@ -1,3 +1,4 @@
+import 'package:computed_flutter/computed_flutter.dart';
 import 'package:drift/drift.dart' hide Column;
 import 'package:flutter/material.dart';
 import 'package:flutter_colorpicker/flutter_colorpicker.dart';
@@ -11,6 +12,8 @@ class CategoriesDrawer extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final categoriesWithCount =
+        ref.watch(AppDatabase.provider).categoriesWithCount();
     return Drawer(
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -26,10 +29,10 @@ class CategoriesDrawer extends ConsumerWidget {
             ),
           ),
           Flexible(
-            child: StreamBuilder<List<CategoryWithCount>>(
-              stream: ref.watch(AppDatabase.provider).categoriesWithCount(),
-              builder: (context, snapshot) {
-                final categories = snapshot.data ?? <CategoryWithCount>[];
+            child: ComputedBuilder(
+              builder: (context) {
+                List<CategoryWithCount> categories =
+                    categoriesWithCount.useOr(<CategoryWithCount>[]);
 
                 return ListView.builder(
                   itemBuilder: (context, index) {
