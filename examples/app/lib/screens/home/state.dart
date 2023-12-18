@@ -1,12 +1,12 @@
-import 'package:riverpod/riverpod.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../database/database.dart';
 
 final activeCategory = StateProvider<Category?>((_) => null);
 
-final entriesInCategory = StreamProvider((ref) {
-  final database = ref.watch(AppDatabase.provider);
+Stream<List<TodoEntryWithCategory>> entriesInCategory(WidgetRef ref) {
+  final database = ref.read(AppDatabase.provider);
   final current = ref.watch(activeCategory)?.id;
 
   return database.entriesInCategory(current);
-});
+}

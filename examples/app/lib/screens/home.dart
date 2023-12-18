@@ -1,3 +1,4 @@
+import 'package:computed_flutter/computed_flutter.dart';
 import 'package:drift/drift.dart' hide Column;
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -43,7 +44,7 @@ class _HomePageState extends ConsumerState<HomePage> {
 
   @override
   Widget build(BuildContext context) {
-    final currentEntries = ref.watch(entriesInCategory);
+    final currentEntries = entriesInCategory(ref);
 
     return Scaffold(
       appBar: AppBar(
@@ -58,23 +59,26 @@ class _HomePageState extends ConsumerState<HomePage> {
         ],
       ),
       drawer: const CategoriesDrawer(),
-      body: currentEntries.when(
-        data: (entries) {
-          return ListView.builder(
-            itemCount: entries.length,
-            itemBuilder: (context, index) {
-              return TodoCard(entries[index].entry);
-            },
-          );
+      body: ComputedBuilder(
+        builder: (ctx) {
+          try {
+            final entries = currentEntries.use;
+            return ListView.builder(
+              itemCount: entries.length,
+              itemBuilder: (context, index) {
+                return TodoCard(entries[index].entry);
+              },
+            );
+          } on NoValueException {
+            return const Align(
+              alignment: Alignment.center,
+              child: CircularProgressIndicator(),
+            );
+          } catch (e, s) {
+            debugPrintStack(label: e.toString(), stackTrace: s);
+            return const Text('An error has occured');
+          }
         },
-        error: (e, s) {
-          debugPrintStack(label: e.toString(), stackTrace: s);
-          return const Text('An error has occured');
-        },
-        loading: () => const Align(
-          alignment: Alignment.center,
-          child: CircularProgressIndicator(),
-        ),
       ),
       bottomSheet: Material(
         elevation: 12,

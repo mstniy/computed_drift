@@ -13,7 +13,7 @@ class CategoriesDrawer extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final categoriesWithCount =
-        ref.watch(AppDatabase.provider).categoriesWithCount();
+        ref.read(AppDatabase.provider).categoriesWithCount();
     return Drawer(
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
