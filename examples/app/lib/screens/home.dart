@@ -26,12 +26,11 @@ class _HomePageState extends ConsumerState<HomePage> {
     super.dispose();
   }
 
-  void _addTodoEntry() {
+  void _addTodoEntry(Category? currentCategory) {
     if (_controller.text.isNotEmpty) {
       // We write the entry here. Notice how we don't have to call setState()
       // or anything - drift will take care of updating the list automatically.
       final database = ref.read(AppDatabase.provider);
-      final currentCategory = ref.read(activeCategory);
 
       database.todoEntries.insertOne(TodoEntriesCompanion.insert(
         description: _controller.text,
@@ -80,36 +79,39 @@ class _HomePageState extends ConsumerState<HomePage> {
           }
         },
       ),
-      bottomSheet: Material(
-        elevation: 12,
-        child: SafeArea(
-          child: Padding(
-            padding: const EdgeInsets.all(8),
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: <Widget>[
-                const Text('What needs to be done?'),
-                Row(
-                  children: <Widget>[
-                    Expanded(
-                      child: TextField(
-                        controller: _controller,
-                        onSubmitted: (_) => _addTodoEntry(),
+      bottomSheet: ComputedBuilder(builder: (context) {
+        final category = activeCategory.use;
+        return Material(
+          elevation: 12,
+          child: SafeArea(
+            child: Padding(
+              padding: const EdgeInsets.all(8),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: <Widget>[
+                  const Text('What needs to be done?'),
+                  Row(
+                    children: <Widget>[
+                      Expanded(
+                        child: TextField(
+                          controller: _controller,
+                          onSubmitted: (_) => _addTodoEntry(category),
+                        ),
                       ),
-                    ),
-                    IconButton(
-                      icon: const Icon(Icons.send),
-                      color: Theme.of(context).colorScheme.secondary,
-                      onPressed: _addTodoEntry,
-                    ),
-                  ],
-                ),
-              ],
+                      IconButton(
+                        icon: const Icon(Icons.send),
+                        color: Theme.of(context).colorScheme.secondary,
+                        onPressed: () => _addTodoEntry(category),
+                      ),
+                    ],
+                  ),
+                ],
+              ),
             ),
           ),
-        ),
-      ),
+        );
+      }),
     );
   }
 }

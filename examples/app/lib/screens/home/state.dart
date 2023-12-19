@@ -1,12 +1,18 @@
+import 'package:computed/utils/streams.dart';
+import 'package:computed_flutter/computed_flutter.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../database/database.dart';
 
-final activeCategory = StateProvider<Category?>((_) => null);
+final activeCategory = ValueStream<Category?>.seeded(null);
 
-Stream<List<TodoEntryWithCategory>> entriesInCategory(WidgetRef ref) {
+Computed<List<TodoEntryWithCategory>> entriesInCategory(WidgetRef ref) {
   final database = ref.read(AppDatabase.provider);
-  final current = ref.watch(activeCategory)?.id;
 
-  return database.entriesInCategory(current);
+  final activeCategoryId = $(() => activeCategory.use?.id);
+
+  final reactiveQuery =
+      activeCategoryId.asStream.map((id) => database.entriesInCategory(id));
+
+  return $(() => reactiveQuery.use.use);
 }

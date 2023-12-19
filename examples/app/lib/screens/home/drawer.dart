@@ -57,119 +57,122 @@ class _CategoryDrawerEntry extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final category = entry.category;
-    final isActive = ref.watch(activeCategory)?.id == category?.id;
+    final database = ref.read(AppDatabase.provider);
+    return ComputedBuilder(builder: (BuildContext context) {
+      final isActive = activeCategory.use?.id == category?.id;
 
-    String title;
-    if (category == null) {
-      title = 'No category';
-    } else {
-      title = category.name;
-    }
+      String title;
+      if (category == null) {
+        title = 'No category';
+      } else {
+        title = category.name;
+      }
 
-    final rowContent = [
-      if (category != null)
+      final rowContent = [
+        if (category != null)
+          Padding(
+            padding: const EdgeInsets.only(right: 10),
+            child: GestureDetector(
+              onTap: () async {
+                final newColor = await _selectColor(context, category.color);
+                if (newColor != null) {
+                  final update = database.categories.update()
+                    ..whereSamePrimaryKey(category);
+                  await update
+                      .write(CategoriesCompanion(color: Value(newColor)));
+                }
+              },
+              child: DecoratedBox(
+                decoration: BoxDecoration(
+                  shape: BoxShape.circle,
+                  color: category.color,
+                ),
+                child: const SizedBox.square(dimension: 20),
+              ),
+            ),
+          ),
+        Text(
+          title,
+          style: TextStyle(
+            fontWeight: FontWeight.bold,
+            color: isActive
+                ? Theme.of(context).colorScheme.secondary
+                : Colors.black,
+          ),
+        ),
         Padding(
-          padding: const EdgeInsets.only(right: 10),
-          child: GestureDetector(
-            onTap: () async {
-              final newColor = await _selectColor(context, category.color);
-              if (newColor != null) {
-                final update = ref
-                    .read(AppDatabase.provider)
-                    .categories
-                    .update()
-                  ..whereSamePrimaryKey(category);
-                await update.write(CategoriesCompanion(color: Value(newColor)));
+          padding: const EdgeInsets.all(8),
+          child: Text('${entry.count} entries'),
+        ),
+      ];
+
+      // also show a delete button if the category can be deleted
+      if (category != null) {
+        rowContent.addAll([
+          const Spacer(),
+          IconButton(
+            icon: const Icon(Icons.delete_outline),
+            color: Colors.red,
+            onPressed: () async {
+              final confirmed = await showDialog<bool>(
+                context: context,
+                builder: (context) {
+                  return AlertDialog(
+                    title: const Text('Delete'),
+                    content: Text('Really delete category $title?'),
+                    actions: <Widget>[
+                      TextButton(
+                        child: const Text('Cancel'),
+                        onPressed: () {
+                          Navigator.pop(context, false);
+                        },
+                      ),
+                      TextButton(
+                        style: ButtonStyle(
+                          foregroundColor:
+                              MaterialStateProperty.all(Colors.red),
+                        ),
+                        onPressed: () {
+                          Navigator.pop(context, true);
+                        },
+                        child: const Text('Delete'),
+                      ),
+                    ],
+                  );
+                },
+              );
+
+              // can be null when the dialog is dismissed
+              if (confirmed == true) {
+                database.deleteCategory(category);
               }
             },
-            child: DecoratedBox(
-              decoration: BoxDecoration(
-                shape: BoxShape.circle,
-                color: category.color,
+          ),
+        ]);
+      }
+
+      return Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 8),
+        child: Material(
+          color: isActive
+              ? Colors.orangeAccent.withOpacity(0.3)
+              : Colors.transparent,
+          borderRadius: BorderRadius.circular(8),
+          child: InkWell(
+            onTap: () {
+              activeCategory.add(category);
+              Navigator.pop(context); // close the navigation drawer
+            },
+            child: Padding(
+              padding: const EdgeInsets.all(8),
+              child: Row(
+                children: rowContent,
               ),
-              child: const SizedBox.square(dimension: 20),
             ),
           ),
         ),
-      Text(
-        title,
-        style: TextStyle(
-          fontWeight: FontWeight.bold,
-          color:
-              isActive ? Theme.of(context).colorScheme.secondary : Colors.black,
-        ),
-      ),
-      Padding(
-        padding: const EdgeInsets.all(8),
-        child: Text('${entry.count} entries'),
-      ),
-    ];
-
-    // also show a delete button if the category can be deleted
-    if (category != null) {
-      rowContent.addAll([
-        const Spacer(),
-        IconButton(
-          icon: const Icon(Icons.delete_outline),
-          color: Colors.red,
-          onPressed: () async {
-            final confirmed = await showDialog<bool>(
-              context: context,
-              builder: (context) {
-                return AlertDialog(
-                  title: const Text('Delete'),
-                  content: Text('Really delete category $title?'),
-                  actions: <Widget>[
-                    TextButton(
-                      child: const Text('Cancel'),
-                      onPressed: () {
-                        Navigator.pop(context, false);
-                      },
-                    ),
-                    TextButton(
-                      style: ButtonStyle(
-                        foregroundColor: MaterialStateProperty.all(Colors.red),
-                      ),
-                      onPressed: () {
-                        Navigator.pop(context, true);
-                      },
-                      child: const Text('Delete'),
-                    ),
-                  ],
-                );
-              },
-            );
-
-            // can be null when the dialog is dismissed
-            if (confirmed == true) {
-              ref.read(AppDatabase.provider).deleteCategory(category);
-            }
-          },
-        ),
-      ]);
-    }
-
-    return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 8),
-      child: Material(
-        color: isActive
-            ? Colors.orangeAccent.withOpacity(0.3)
-            : Colors.transparent,
-        borderRadius: BorderRadius.circular(8),
-        child: InkWell(
-          onTap: () {
-            ref.read(activeCategory.notifier).state = category;
-            Navigator.pop(context); // close the navigation drawer
-          },
-          child: Padding(
-            padding: const EdgeInsets.all(8),
-            child: Row(
-              children: rowContent,
-            ),
-          ),
-        ),
-      ),
-    );
+      );
+    });
   }
 }
 
