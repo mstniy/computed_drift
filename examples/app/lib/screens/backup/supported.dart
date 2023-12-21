@@ -2,10 +2,10 @@ import 'dart:io';
 
 import 'package:app/database/connection/native.dart';
 import 'package:app/database/database.dart';
+import 'package:computed_flutter/computed_flutter.dart';
 import 'package:drift/drift.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:path/path.dart' as p;
 import 'package:path_provider/path_provider.dart';
 import 'package:sqlite3/sqlite3.dart';
@@ -24,11 +24,12 @@ class BackupIcon extends StatelessWidget {
   }
 }
 
-class BackupDialog extends ConsumerWidget {
+class BackupDialog extends ComputedWidget {
   const BackupDialog({Key? key}) : super(key: key);
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  Widget build(BuildContext context) {
+    final db = AppDatabase.provider.use;
     return AlertDialog(
       title: const Text('Database backup'),
       content: const Text(
@@ -38,13 +39,12 @@ class BackupDialog extends ConsumerWidget {
       actions: [
         TextButton(
           onPressed: () {
-            createDatabaseBackup(ref.read(AppDatabase.provider));
+            createDatabaseBackup(db);
           },
           child: const Text('Save'),
         ),
         TextButton(
           onPressed: () async {
-            final db = ref.read(AppDatabase.provider);
             await db.close();
 
             // Open the selected database file
@@ -65,7 +65,7 @@ class BackupDialog extends ConsumerWidget {
             await tempDbFile.delete();
 
             // And now, re-open the database!
-            ref.read(AppDatabase.provider.notifier).state = AppDatabase();
+            AppDatabase.provider.add(AppDatabase());
           },
           child: const Text('Restore'),
         ),

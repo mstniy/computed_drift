@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 import 'screens/home.dart';
@@ -29,15 +28,13 @@ class MyApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return ProviderScope(
-      child: MaterialApp.router(
-        title: 'Drift Todos',
-        theme: ThemeData(
-          primarySwatch: Colors.amber,
-          typography: Typography.material2018(),
-        ),
-        routerConfig: _router,
+    return MaterialApp.router(
+      title: 'Drift Todos',
+      theme: ThemeData(
+        primarySwatch: Colors.amber,
+        typography: Typography.material2018(),
       ),
+      routerConfig: _router,
     );
   }
 }

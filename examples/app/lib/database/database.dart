@@ -1,6 +1,9 @@
+import 'dart:async';
+
+import 'package:computed/utils/streams.dart';
+
 import 'package:drift/drift.dart';
 import 'package:flutter/material.dart' show Colors;
-import 'package:riverpod/riverpod.dart';
 
 import 'connection/connection.dart' as impl;
 import 'tables.dart';
@@ -124,12 +127,8 @@ class AppDatabase extends _$AppDatabase {
     });
   }
 
-  static final StateProvider<AppDatabase> provider = StateProvider((ref) {
-    final database = AppDatabase();
-    ref.onDispose(database.close);
-
-    return database;
-  });
+  static final provider =
+      ResourceStream(() => AppDatabase(), (db) => db.close());
 }
 
 class TodoEntryWithCategory {

@@ -1,7 +1,6 @@
 import 'package:computed_flutter/computed_flutter.dart';
 import 'package:drift/drift.dart' hide Column;
 import 'package:flutter/material.dart';
-import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 import '../database/database.dart';
@@ -10,15 +9,16 @@ import 'home/card.dart';
 import 'home/drawer.dart';
 import 'home/state.dart';
 
-class HomePage extends ConsumerStatefulWidget {
+class HomePage extends ComputedStatefulWidget {
   const HomePage({Key? key}) : super(key: key);
 
   @override
-  ConsumerState<HomePage> createState() => _HomePageState();
+  State<HomePage> createState() => _HomePageState();
 }
 
-class _HomePageState extends ConsumerState<HomePage> {
+class _HomePageState extends State<HomePage> {
   final _controller = TextEditingController();
+  final currentEntries = entriesInCategory();
 
   @override
   void dispose() {
@@ -26,11 +26,10 @@ class _HomePageState extends ConsumerState<HomePage> {
     super.dispose();
   }
 
-  void _addTodoEntry(Category? currentCategory) {
+  void _addTodoEntry(AppDatabase database, Category? currentCategory) {
     if (_controller.text.isNotEmpty) {
       // We write the entry here. Notice how we don't have to call setState()
       // or anything - drift will take care of updating the list automatically.
-      final database = ref.read(AppDatabase.provider);
 
       database.todoEntries.insertOne(TodoEntriesCompanion.insert(
         description: _controller.text,
@@ -43,8 +42,7 @@ class _HomePageState extends ConsumerState<HomePage> {
 
   @override
   Widget build(BuildContext context) {
-    final currentEntries = entriesInCategory(ref);
-
+    final db = AppDatabase.provider.use;
     return Scaffold(
       appBar: AppBar(
         title: const Text('Drift Todo list'),
@@ -96,13 +94,13 @@ class _HomePageState extends ConsumerState<HomePage> {
                       Expanded(
                         child: TextField(
                           controller: _controller,
-                          onSubmitted: (_) => _addTodoEntry(category),
+                          onSubmitted: (_) => _addTodoEntry(db, category),
                         ),
                       ),
                       IconButton(
                         icon: const Icon(Icons.send),
                         color: Theme.of(context).colorScheme.secondary,
-                        onPressed: () => _addTodoEntry(category),
+                        onPressed: () => _addTodoEntry(db, category),
                       ),
                     ],
                   ),

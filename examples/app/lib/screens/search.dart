@@ -1,31 +1,25 @@
+import 'package:computed_flutter/computed_flutter.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../database/database.dart';
 import 'home/card.dart';
 
-class SearchPage extends ConsumerStatefulWidget {
+class SearchPage extends ComputedStatefulWidget {
   const SearchPage({Key? key}) : super(key: key);
 
   @override
-  ConsumerState<SearchPage> createState() => _SearchPageState();
+  State<SearchPage> createState() => _SearchPageState();
 }
 
-class _SearchPageState extends ConsumerState<SearchPage> {
+class _SearchPageState extends State<SearchPage> {
   final TextEditingController _controller = TextEditingController();
-  String _text = '';
-  Future<List<TodoEntryWithCategory>>? _search;
+  Computed<List<TodoEntryWithCategory>>? _search;
 
   @override
   void initState() {
-    _controller.addListener(() {
-      setState(() {
-        if (_text != _controller.text && _controller.text.isNotEmpty) {
-          _text = _controller.text;
-          _search = ref.read(AppDatabase.provider).search(_text);
-        }
-      });
-    });
+    _search = Computed.async(() => _controller.use.text.isNotEmpty
+        ? AppDatabase.provider.use.search(_controller.use.text)
+        : Future.value(<TodoEntryWithCategory>[])).unwrap;
     super.initState();
   }
 
@@ -52,11 +46,10 @@ class _SearchPageState extends ConsumerState<SearchPage> {
               alignment: Alignment.center,
               child: Text('Enter text to start searching'),
             )
-          : FutureBuilder<List<TodoEntryWithCategory>>(
-              future: _search,
-              builder: (context, snapshot) {
-                if (snapshot.hasData) {
-                  final results = snapshot.data!;
+          : ComputedBuilder(
+              builder: (context) {
+                try {
+                  final results = _search!.use;
 
                   return ListView.builder(
                     itemCount: results.length,
@@ -64,7 +57,7 @@ class _SearchPageState extends ConsumerState<SearchPage> {
                       return TodoCard(results[index].entry);
                     },
                   );
-                } else {
+                } on NoValueException {
                   return const CircularProgressIndicator();
                 }
               },

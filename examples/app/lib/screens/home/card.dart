@@ -1,6 +1,6 @@
+import 'package:computed_flutter/computed_flutter.dart';
 import 'package:drift/drift.dart' hide Column;
 import 'package:flutter/material.dart';
-import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
 
 import '../../database/database.dart';
@@ -9,14 +9,15 @@ import 'todo_edit_dialog.dart';
 final DateFormat _format = DateFormat.yMMMd();
 
 /// Card that displays an entry and an icon button to delete that entry
-class TodoCard extends ConsumerWidget {
+class TodoCard extends ComputedWidget {
   final TodoEntry entry;
 
   TodoCard(this.entry) : super(key: ObjectKey(entry.id));
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  Widget build(BuildContext context) {
     final dueDate = entry.dueDate;
+    final db = AppDatabase.provider.use;
 
     return Card(
       child: Padding(
@@ -61,7 +62,7 @@ class TodoCard extends ConsumerWidget {
                 // We delete the entry here. Again, notice how we don't have to
                 // call setState() or inform the parent widget. Drift will take
                 // care of updating the underlying data automatically
-                ref.read(AppDatabase.provider).todoEntries.deleteOne(entry);
+                db.todoEntries.deleteOne(entry);
               },
             )
           ],

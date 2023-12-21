@@ -1,22 +1,22 @@
+import 'package:computed_flutter/computed_flutter.dart';
 import 'package:drift/drift.dart' hide Column;
 import 'package:flutter/material.dart';
-import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
 
 import '../../database/database.dart';
 
 final _dateFormat = DateFormat.yMMMd();
 
-class TodoEditDialog extends ConsumerStatefulWidget {
+class TodoEditDialog extends ComputedStatefulWidget {
   final TodoEntry entry;
 
   const TodoEditDialog({Key? key, required this.entry}) : super(key: key);
 
   @override
-  ConsumerState<TodoEditDialog> createState() => _TodoEditDialogState();
+  State<TodoEditDialog> createState() => _TodoEditDialogState();
 }
 
-class _TodoEditDialogState extends ConsumerState<TodoEditDialog> {
+class _TodoEditDialogState extends State<TodoEditDialog> {
   final TextEditingController textController = TextEditingController();
   DateTime? _dueDate;
 
@@ -39,6 +39,7 @@ class _TodoEditDialogState extends ConsumerState<TodoEditDialog> {
     if (_dueDate != null) {
       formattedDate = _dateFormat.format(_dueDate!);
     }
+    final db = AppDatabase.provider.use;
 
     return AlertDialog(
       title: const Text('Edit entry'),
@@ -101,7 +102,7 @@ class _TodoEditDialogState extends ConsumerState<TodoEditDialog> {
               dueDate: Value(_dueDate),
             );
 
-            ref.read(AppDatabase.provider).todoEntries.replaceOne(entry);
+            db.todoEntries.replaceOne(entry);
             Navigator.pop(context);
           },
         ),
