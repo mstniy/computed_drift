@@ -32,6 +32,7 @@ class HomePage extends ComputedWidget {
   @override
   Widget build(BuildContext context) {
     final db = AppDatabase.provider.use;
+    final category = activeCategory.use;
     return Scaffold(
       appBar: AppBar(
         title: const Text('Drift Todo list'),
@@ -66,39 +67,36 @@ class HomePage extends ComputedWidget {
           }
         },
       ),
-      bottomSheet: ComputedBuilder(builder: (context) {
-        final category = activeCategory.use;
-        return Material(
-          elevation: 12,
-          child: SafeArea(
-            child: Padding(
-              padding: const EdgeInsets.all(8),
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: <Widget>[
-                  const Text('What needs to be done?'),
-                  Row(
-                    children: <Widget>[
-                      Expanded(
-                        child: TextField(
-                          controller: _controller,
-                          onSubmitted: (_) => _addTodoEntry(db, category),
-                        ),
+      bottomSheet: Material(
+        elevation: 12,
+        child: SafeArea(
+          child: Padding(
+            padding: const EdgeInsets.all(8),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: <Widget>[
+                const Text('What needs to be done?'),
+                Row(
+                  children: <Widget>[
+                    Expanded(
+                      child: TextField(
+                        controller: _controller,
+                        onSubmitted: (_) => _addTodoEntry(db, category),
                       ),
-                      IconButton(
-                        icon: const Icon(Icons.send),
-                        color: Theme.of(context).colorScheme.secondary,
-                        onPressed: () => _addTodoEntry(db, category),
-                      ),
-                    ],
-                  ),
-                ],
-              ),
+                    ),
+                    IconButton(
+                      icon: const Icon(Icons.send),
+                      color: Theme.of(context).colorScheme.secondary,
+                      onPressed: () => _addTodoEntry(db, category),
+                    ),
+                  ],
+                ),
+              ],
             ),
           ),
-        );
-      }),
+        ),
+      ),
     );
   }
 }
