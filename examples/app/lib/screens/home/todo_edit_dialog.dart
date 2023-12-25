@@ -1,3 +1,4 @@
+import 'package:computed/utils/streams.dart';
 import 'package:computed_flutter/computed_flutter.dart';
 import 'package:drift/drift.dart' hide Column;
 import 'package:flutter/material.dart';
@@ -18,12 +19,12 @@ class TodoEditDialog extends ComputedStatefulWidget {
 
 class _TodoEditDialogState extends State<TodoEditDialog> {
   final TextEditingController textController = TextEditingController();
-  DateTime? _dueDate;
+  final _dueDate = ValueStream<DateTime?>();
 
   @override
   void initState() {
     textController.text = widget.entry.description;
-    _dueDate = widget.entry.dueDate;
+    _dueDate.add(widget.entry.dueDate);
     super.initState();
   }
 
@@ -36,8 +37,9 @@ class _TodoEditDialogState extends State<TodoEditDialog> {
   @override
   Widget build(BuildContext context) {
     var formattedDate = 'No date set';
-    if (_dueDate != null) {
-      formattedDate = _dateFormat.format(_dueDate!);
+    final dueDate = _dueDate.use;
+    if (dueDate != null) {
+      formattedDate = _dateFormat.format(dueDate);
     }
     final db = AppDatabase.provider.use;
 
@@ -61,7 +63,7 @@ class _TodoEditDialogState extends State<TodoEditDialog> {
                 icon: const Icon(Icons.calendar_today),
                 onPressed: () async {
                   final now = DateTime.now();
-                  final initialDate = _dueDate ?? now;
+                  final initialDate = dueDate ?? now;
                   final firstDate =
                       initialDate.isBefore(now) ? initialDate : now;
 
@@ -72,9 +74,7 @@ class _TodoEditDialogState extends State<TodoEditDialog> {
                     lastDate: DateTime(3000),
                   );
 
-                  setState(() {
-                    if (selectedDate != null) _dueDate = selectedDate;
-                  });
+                  if (selectedDate != null) _dueDate.add(selectedDate);
                 },
               ),
             ],
@@ -99,7 +99,7 @@ class _TodoEditDialogState extends State<TodoEditDialog> {
             final updatedContent = textController.text;
             final entry = widget.entry.copyWith(
               description: updatedContent.isNotEmpty ? updatedContent : null,
-              dueDate: Value(_dueDate),
+              dueDate: Value(dueDate),
             );
 
             db.todoEntries.replaceOne(entry);
