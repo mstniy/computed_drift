@@ -44,7 +44,7 @@ class HomePage extends ComputedWidget {
           ),
         ],
       ),
-      drawer: const CategoriesDrawer(),
+      drawer: CategoriesDrawer(),
       body: ComputedBuilder(
         builder: (ctx) {
           try {

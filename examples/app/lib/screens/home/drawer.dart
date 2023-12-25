@@ -7,11 +7,13 @@ import '../../database/database.dart';
 import 'state.dart';
 
 class CategoriesDrawer extends ComputedWidget {
-  const CategoriesDrawer({Key? key}) : super(key: key);
+  CategoriesDrawer({Key? key}) : super(key: key);
+  final categoriesWithCount = AppDatabase.provider.use.categoriesWithCount();
 
   @override
   Widget build(BuildContext context) {
-    final categoriesWithCount = AppDatabase.provider.use.categoriesWithCount();
+    List<CategoryWithCount> categories =
+        categoriesWithCount.useOr(<CategoryWithCount>[]);
     return Drawer(
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -27,18 +29,11 @@ class CategoriesDrawer extends ComputedWidget {
             ),
           ),
           Flexible(
-            child: ComputedBuilder(
-              builder: (context) {
-                List<CategoryWithCount> categories =
-                    categoriesWithCount.useOr(<CategoryWithCount>[]);
-
-                return ListView.builder(
-                  itemBuilder: (context, index) {
-                    return _CategoryDrawerEntry(entry: categories[index]);
-                  },
-                  itemCount: categories.length,
-                );
+            child: ListView.builder(
+              itemBuilder: (context, index) {
+                return _CategoryDrawerEntry(entry: categories[index]);
               },
+              itemCount: categories.length,
             ),
           ),
         ],
