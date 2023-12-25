@@ -8,30 +8,14 @@ import '../../database/database.dart';
 
 final _dateFormat = DateFormat.yMMMd();
 
-class TodoEditDialog extends ComputedStatefulWidget {
+class TodoEditDialog extends ComputedWidget {
   final TodoEntry entry;
+  final textController = TextEditingController();
+  late final ValueStream<DateTime?> _dueDate;
 
-  const TodoEditDialog({Key? key, required this.entry}) : super(key: key);
-
-  @override
-  State<TodoEditDialog> createState() => _TodoEditDialogState();
-}
-
-class _TodoEditDialogState extends State<TodoEditDialog> {
-  final TextEditingController textController = TextEditingController();
-  final _dueDate = ValueStream<DateTime?>();
-
-  @override
-  void initState() {
-    textController.text = widget.entry.description;
-    _dueDate.add(widget.entry.dueDate);
-    super.initState();
-  }
-
-  @override
-  void dispose() {
-    textController.dispose();
-    super.dispose();
+  TodoEditDialog({Key? key, required this.entry}) : super(key: key) {
+    textController.text = entry.description;
+    _dueDate = ValueStream<DateTime?>.seeded(entry.dueDate);
   }
 
   @override
@@ -97,12 +81,12 @@ class _TodoEditDialogState extends State<TodoEditDialog> {
           child: const Text('Save'),
           onPressed: () {
             final updatedContent = textController.text;
-            final entry = widget.entry.copyWith(
+            final newEntry = entry.copyWith(
               description: updatedContent.isNotEmpty ? updatedContent : null,
               dueDate: Value(dueDate),
             );
 
-            db.todoEntries.replaceOne(entry);
+            db.todoEntries.replaceOne(newEntry);
             Navigator.pop(context);
           },
         ),
