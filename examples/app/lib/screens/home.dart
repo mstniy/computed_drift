@@ -9,22 +9,11 @@ import 'home/card.dart';
 import 'home/drawer.dart';
 import 'home/state.dart';
 
-class HomePage extends ComputedStatefulWidget {
-  const HomePage({Key? key}) : super(key: key);
+class HomePage extends ComputedWidget {
+  HomePage({Key? key}) : super(key: key);
 
-  @override
-  State<HomePage> createState() => _HomePageState();
-}
-
-class _HomePageState extends State<HomePage> {
   final _controller = TextEditingController();
   final currentEntries = entriesInCategory();
-
-  @override
-  void dispose() {
-    _controller.dispose();
-    super.dispose();
-  }
 
   void _addTodoEntry(AppDatabase database, Category? currentCategory) {
     if (_controller.text.isNotEmpty) {

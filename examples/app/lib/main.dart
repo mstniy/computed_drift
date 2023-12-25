@@ -15,7 +15,7 @@ class MyApp extends StatelessWidget {
     routes: [
       GoRoute(
         path: '/',
-        builder: (_, __) => const HomePage(),
+        builder: (_, __) => HomePage(),
         routes: [
           GoRoute(
             path: 'search',
